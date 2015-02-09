@@ -344,18 +344,18 @@ extends		AbstractComponent
 	public void 			responseArrivalEvent(Response response) {
 		
 		System.out.println(logId + " Received a response from core");
-		/*
+		
 		if(this.meanTime < 0){
 			// first set
 			this.meanTime = (double) response.getDuration();
 		}else{
 			this.meanTime = (this.meanTime + response.getDuration()) / 2.0;
 		}
-		System.out.println(logId + " New mean time : " + this.meanTime);
-		*/
+		//System.out.println(logId + " New mean time : " + this.meanTime);
 		
 		
-		//response.setDuration(this.meanTime);
+		
+		response.setDuration(this.meanTime);
 		// send the new mean time of the virtual machine to the request dispatcher
 		try {
 			if(this.vmResponseGeneratorOutboundPort.connected()){

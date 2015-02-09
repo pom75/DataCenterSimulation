@@ -214,17 +214,19 @@ public class Cpu extends AbstractComponent {
 	 * @return true if all the cores were successfully updated, else false
 	 * @throws Exception
 	 */
-	public boolean updateClockSpeed(Double clockSpeed) throws Exception {
+	public boolean updateClockSpeed(Double clockS) throws Exception {
 		System.out.println(logId + " Demande de changement de tous les coeurs à +/- "+clockSpeed);
 		
+		/* Contrainte de 0.5
 		if(clockSpeed > maxClockSpeed || clockSpeed <= 0){
 			return false;
 		}
+		*/
 		boolean updated = true;
 		for (int i = 0; i < controlRequestGeneratorOutboundPorts.size(); i++) {
 			updated = updated
 					&& controlRequestGeneratorOutboundPorts.get(i)
-							.updateClockSpeed(clockSpeed);
+							.updateClockSpeed(clockS);
 		}
 		return updated;
 	}
@@ -238,9 +240,25 @@ public class Cpu extends AbstractComponent {
 		return coreRequestArrivalInboundPortUris;
 	}
 
-	public boolean majClockSpeed(Double fcs, ArrayList<String> cpuU) {
-		System.out.println(logId + "____ Demande de changement de tous les coeurs à +/- "+fcs);
-		return false;
+	public boolean majClockSpeed(Double fcs, ArrayList<String> listCore) throws Exception {
+		System.out.println(logId + " Tentative de change d'un coeur a "+fcs);
+		
+		/*
+		if(clockSpeed > maxClockSpeed || clockSpeed <= 0){
+			return false;
+		}
+		*/
+		
+		boolean updated = true;
+		for (int i = 0; i < controlRequestGeneratorOutboundPorts.size(); i++) {
+			if(controlRequestGeneratorOutboundPorts.get(i).getServerPortURI().split("-")[4].contentEquals(listCore.get(i).split("-")[4])){
+				if(controlRequestGeneratorOutboundPorts.get(i).updateClockSpeed(fcs)){
+					System.out.println(logId + " Tentative de changement de fréquence réussite ");
+					break;
+				}
+			}
+		}
+		return updated;
 	}
 	
 }

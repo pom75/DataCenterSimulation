@@ -247,19 +247,24 @@ extends		AbstractComponent
 	}
 
 	
-	public boolean		updateClockSpeed(Double clockSpeed) throws Exception
+	public boolean		updateClockSpeed(Double clockS) throws Exception
 	{
 		
-		if(clockSpeed <= 0 || clockSpeed > maxClockSpeed){
+		System.out.println("__________________________"+clockS);
+		
+		if( clockS + this.clockSpeed > maxClockSpeed || clockS + this.clockSpeed < 1.0 ){
+			System.out.println(logId +" Impossible de changer la Frequence de ce coeur il a atteinds ces bornes ");
 			return false;
 		}
 
 		// keep track of the old clock rate
 		double oldClockSpeed = this.clockSpeed;
+		double next = clockS +this.clockSpeed;
 		System.out.println(logId + " Updating clock speed : " + this.clockSpeed + " -> "
-				+ clockSpeed);
+				+ next );
 		// update the clock rate
-		this.clockSpeed = clockSpeed;
+		this.clockSpeed = clockSpeed + clockS;
+		
 		System.out.println(logId + " Clock speed updated");
 		
 		if (this.requestsQueue.isEmpty() && this.coreIdle) {

@@ -38,6 +38,9 @@ public class ApplicationControl extends AbstractComponent {
 	protected ArrayList<ControlCpuOutBoundPort> cop = new ArrayList<ControlCpuOutBoundPort>();
 	
 	
+	private int marge = 0;
+	
+	
 	public ApplicationControl(Integer id, 
 			Double time,
 			HashMap<String,ArrayList<String>> cpuCoreInboundPortUris
@@ -69,7 +72,6 @@ public class ApplicationControl extends AbstractComponent {
 					buff.localPublishPort() ;
 				}
 				buff.doConnection(AC_CIP_PREFIX + i, ControlRequestServiceConnector.class.getCanonicalName());
-				buff.majClockSpeed(0.5, cpuCoreInboundPortUris.get(AC_CIP_PREFIX + i));
 				cpt++;
 			}
 			i++;
@@ -93,11 +95,50 @@ public class ApplicationControl extends AbstractComponent {
 
 
 	public void infoArrivalEvent(String info) {
+		double pourcent = 10.0;
 		
 		this.meanTime = (this.meanTime + Double.parseDouble(info)) / 2.0;
 			
 		System.out.println(logId + " New mean time : " + this.meanTime);
 		System.out.println(logId + " Time expected : " + this.timeExp);
+		
+		//Si la marge est atteinte et on est en / haut dessus du temps cible 
+		if (marge % 1 == 0 && (pourcent/100.0 * this.timeExp) + this.timeExp < this.meanTime){
+			this.meanTime = Double.parseDouble(info);// on réquilibre la coubre
+			//On parcourt les cpu 1 à 1 jusqu'a pouvoir changer la freq d'un coeur ( contraint max + diff 0.5) 
+			for(int i = 0; i< cop.size(); i++ ){
+				try {
+					if(cop.get(i).majClockSpeed( 0.5, cpuCoreInboundPortUris.get(cop.get(i).getServerPortURI()))){
+						break;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					break;
+				}
+				if(i == cop.size() -1){
+					System.out.println(logId + " N'a pas pu changer la fréquence des coeurs ");
+				}
+			}
+			
+		}else if(marge % 1 == 0 &&  this.timeExp - (pourcent/100.0 * this.timeExp)  > this.meanTime){
+			this.meanTime = Double.parseDouble(info);
+			for(int i = 0; i< cop.size(); i++ ){
+				try {
+					if(cop.get(i).majClockSpeed(- 0.5, cpuCoreInboundPortUris.get(cop.get(i).getServerPortURI()))){
+						break;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					break;
+				}
+				if(i == cop.size() -1){
+					System.out.println(logId + " N'a pas pu changer la fréquence des coeurs ");
+				}
+			}
+		}
+		
+		
+		marge ++;
 	}
 
 }
