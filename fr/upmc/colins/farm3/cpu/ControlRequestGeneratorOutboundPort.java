@@ -73,5 +73,12 @@ implements	ControlRequestArrivalI
 		return ((ControlRequestArrivalI)this.connector).getCoresRequestArrivalInboundPortUris();
 	}
 
+	@Override
+	public boolean majClockSpeed(Double clockSpeed, ArrayList<String> cpuUri)
+			throws Exception {
+		return ((ControlRequestArrivalI)this.connector).majClockSpeed(clockSpeed, cpuUri);
+
+	}
+
 
 }

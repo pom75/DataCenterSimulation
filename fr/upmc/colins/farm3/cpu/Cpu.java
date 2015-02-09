@@ -235,5 +235,10 @@ public class Cpu extends AbstractComponent {
 	public ArrayList<String> getCoresRequestArrivalInboundPortUris() {
 		return coreRequestArrivalInboundPortUris;
 	}
+
+	public boolean majClockSpeed(Double fcs, ArrayList<String> cpuU) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 	
 }

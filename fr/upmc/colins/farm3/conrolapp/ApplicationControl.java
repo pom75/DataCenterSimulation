@@ -48,7 +48,7 @@ public class ApplicationControl extends AbstractComponent {
 		
 		this.addRequiredInterface(ControlRequestArrivalI.class);
 		
-		//On connecte tous les cpu a AppControl
+		/*On connecte tous les cpu a AppControl
 		int cpt = 0;
 		int i =0;
 		while(cpt != cpuCoreInboundPortUris.size()){
@@ -58,6 +58,7 @@ public class ApplicationControl extends AbstractComponent {
 			}
 			i++;
 		}
+		*/
 		
 		// inbound port for info arrival
 		this.addOfferedInterface(AppControlerInfoInboundPort.class) ;
