@@ -1,6 +1,8 @@
 package fr.upmc.colins.farm3.coordCpu;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import fr.upmc.colins.farm3.connectors.ControlRequestServiceConnector;
 import fr.upmc.colins.farm3.conrolapp.ControlCpuOutBoundPort;
@@ -24,16 +26,22 @@ public class CooridationCoreInCPU extends AbstractComponent {
 	//cf nom varibale
 	protected ControlCpuOutBoundPort incpp;
 	
+	protected HashMap<String, String>  idPrio = new HashMap<String, String>();
+	protected HashMap<String, ArrayList<String>>  idCore = new HashMap<String, ArrayList<String>>();
+	
 	public CooridationCoreInCPU(
 			Integer id,
 			ArrayList<Double> coreFre,
 			String uriCPU
 			) throws Exception{
 		super(true, true);
+		
+
 		this.id = id;
 		this.coreFre = coreFre;
 		this.cpuUriInboundPort = uriCPU;
-		
+		this.logId = MessageFormat.format("[ CoCPU {0} ]", String.format("%04d", id));
+
 		//On connecte le CC au CPU 
 		this.addOfferedInterface(ControlRequestArrivalI.class);
 		this.addRequiredInterface(ControlRequestArrivalI.class);
@@ -60,9 +68,49 @@ public class CooridationCoreInCPU extends AbstractComponent {
 	}
 	
 	public boolean majClockSpeed(String prio, Double fcs, ArrayList<String> listCore) throws Exception {
+		String idAp = prio.split("-")[0];
+		String p = prio.split("-")[1];
+		
+		idPrio.put(idAp, p);
+		idCore.put(idAp, listCore);
+		
+		boolean response = false;
+		ArrayList<String> buffList ; 
+		for(int i = 0; i<listCore.size(); i++){
+			buffList = new ArrayList<String>();
+			buffList.add(listCore.get(i));
+			if(canUp(Integer.parseInt(listCore.get(i).split("-")[4]), fcs)){
+				if(incpp.majClockSpeed(prio, fcs, listCore)){
+					response = true;
+					System.out.println(logId + " Tentative de changement de fréquence réussite ");
+					coreFre.set(Integer.parseInt(listCore.get(i).split("-")[4]), coreFre.get(Integer.parseInt(listCore.get(i).split("-")[4])) + fcs );
+					break;
+				}
+			}else{
+				System.out.println(logId + " Contrainte de Diff! Impossible de chnager le coeur "+Integer.parseInt(listCore.get(i).split("-")[4]));
+				System.out.println(logId + " Tentative de changement par la priorité");
+
+			}
+			
+		}
 		return incpp.majClockSpeed(prio, fcs, listCore);
 		
 	}
+	
+	//Contrainte si diff   ->    >=0.5 || <= 0.5
+		public boolean canUp(int i,Double fcs){
+			Double buff = coreFre.get(i) + fcs;
+			boolean resp = true;
+			
+			for(int j = 0; j < coreFre.size(); j++){
+				if(!(buff -  coreFre.get(j) <= 0.5 && buff -  coreFre.get(j) >= -0.5)){
+					resp = false;
+					break;
+				}
+			}
+			
+			return resp;
+		}
 
 	public boolean updateClockSpeed(Double fcs) {
 		// TODO Auto-generated method stub

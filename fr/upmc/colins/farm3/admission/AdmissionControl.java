@@ -194,6 +194,7 @@ public class AdmissionControl extends AbstractComponent {
 
 		ArrayList<String> vmRequestArrivalInboundPortUris = new ArrayList<>();
 		ArrayList<String> allCoeurapp = new ArrayList<>();
+
 		
 		for (int i = 0; i < nrofVMPerDispatcher; i++) {
 
@@ -213,14 +214,20 @@ public class AdmissionControl extends AbstractComponent {
 					System.err.println("The cluster ran out of available cores, sorry.");
 					return "";
 				}
-				String uri = this.coreRequestArrivalInboundPortUris.remove(0);
+				//Coeur de diférence proc
+				String uri;
+				if(i % 2 == 0){
+					uri = this.coreRequestArrivalInboundPortUris.remove(0);
+				}else{
+					uri = this.coreRequestArrivalInboundPortUris.remove(coreRequestArrivalInboundPortUris.size()-1);
+				}
 				assignedCoreRequestArrivalInboundPortUris.add(uri);
+
 				this.usedCoreRequestArrivalInboundPortUris.add(uri);
 			}
 			//On prends tous les couers des  toutes les VM
 			allCoeurapp.addAll(assignedCoreRequestArrivalInboundPortUris);
-
-
+			
 			//On ajoute le liste VM / Coeur
 			appVMInboundPortUris.put(a.getUri()+"", assignedCoreRequestArrivalInboundPortUris);
 
@@ -239,6 +246,8 @@ public class AdmissionControl extends AbstractComponent {
 			// of the virtual machine
 
 		}
+		
+		System.out.println(logId+ " l'App "+a.getUri()+" est lié avec les coeurs "+allCoeurapp + " et les VM "+vmRequestArrivalInboundPortUris);
 
 		//On ajoute les vm a une app
 		appVMInboundPortUris.put(a.getUri()+"", vmRequestArrivalInboundPortUris);

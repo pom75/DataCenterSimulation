@@ -259,37 +259,20 @@ public class Cpu extends AbstractComponent {
 		}
 		 */
 
-		boolean updated = true;
+		boolean updated = false;
 		for (int i = 0; i < controlRequestGeneratorOutboundPorts.size(); i++) {
-			if(controlRequestGeneratorOutboundPorts.get(i).getServerPortURI().split("-")[4].contentEquals(listCore.get(i).split("-")[4])){
-
-				if(canUp(i, fcs)){
+			for(int j = 0; j<listCore.size();j++){
+				if(controlRequestGeneratorOutboundPorts.get(i).getServerPortURI().split("-")[4].contentEquals(listCore.get(j).split("-")[4])){
 					if(controlRequestGeneratorOutboundPorts.get(i).updateClockSpeed(fcs)){
 						System.out.println(logId + " Tentative de changement de fréquence réussite ");
 						coreFre.set(i, coreFre.get(i) + fcs );
+						updated = true;
 						break;
 					}
-				}else{
-					System.out.println(logId + " Contrainte de Diff! Impossible de chnager le coeur "+i);
 				}
 			}
 		}
 		return updated;
-	}
-	
-	//Contrainte si diff   ->    >=1 || <=1
-	public boolean canUp(int i,Double fcs){
-		Double buff = coreFre.get(i) + fcs;
-		boolean resp = true;
-		
-		for(int j = 0; j < coreFre.size(); j++){
-			if(!(buff -  coreFre.get(j) <= 1 && buff -  coreFre.get(j) >= -1)){
-				resp = false;
-				break;
-			}
-		}
-		
-		return resp;
 	}
 
 }
