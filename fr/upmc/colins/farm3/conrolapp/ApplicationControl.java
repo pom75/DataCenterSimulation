@@ -107,7 +107,7 @@ public class ApplicationControl extends AbstractComponent {
 			
 		System.out.println(logId + " New mean time : " + this.meanTime);
 		System.out.println(logId + " Time expected : " + this.timeExp);
-		
+	
 		//Si la marge est atteinte et on est en / haut dessus du temps cible 
 		if (marge % 1 == 0 && (pourcent/100.0 * this.timeExp) + this.timeExp < this.meanTime){
 			this.meanTime = Double.parseDouble(info);// on réquilibre la coubre

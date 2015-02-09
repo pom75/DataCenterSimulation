@@ -27,7 +27,7 @@ extends		TwoWayI
 	 * @return true if the clockspeed was successfully updated, else false
 	 * @throws Exception
 	 */
-	boolean				updateClockSpeed(Double clockSpeed) throws Exception ;
+	boolean				updateClockSpeed(Double clockSpeed, ArrayList<String> listCore) throws Exception ;
 	
 	
 	boolean				majClockSpeed(String prio ,Double clockSpeed,ArrayList<String> cpuUri) throws Exception ;

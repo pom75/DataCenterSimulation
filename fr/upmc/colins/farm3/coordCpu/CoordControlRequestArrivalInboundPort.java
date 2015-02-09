@@ -56,10 +56,10 @@ implements	ControlRequestArrivalI
 	
 
 	@Override
-	public boolean updateClockSpeed(Double clockSpeed) throws Exception {
+	public boolean updateClockSpeed(Double clockSpeed, ArrayList<String> listCore) throws Exception {
 		final CooridationCoreInCPU fc = (CooridationCoreInCPU) this.owner ;
 		final Double fcs = clockSpeed ;
-		return fc.updateClockSpeed(fcs);
+		return fc.updateClockSpeed(fcs, listCore);
 	}
 
 

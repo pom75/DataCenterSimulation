@@ -34,8 +34,8 @@ implements	ControlRequestArrivalI,	Serializable
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public boolean updateClockSpeed(Double clockSpeed) throws Exception {
-		return ((ControlRequestArrivalI)this.offering).updateClockSpeed(clockSpeed);
+	public boolean updateClockSpeed(Double clockSpeed, ArrayList<String> listCore) throws Exception {
+		return ((ControlRequestArrivalI)this.offering).updateClockSpeed(clockSpeed, listCore);
 	}
 
 	@Override

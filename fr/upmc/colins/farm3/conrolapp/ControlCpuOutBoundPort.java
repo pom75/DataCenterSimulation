@@ -21,8 +21,8 @@ implements ControlRequestArrivalI {
 	}
 
 	@Override
-	public boolean updateClockSpeed(Double clockSpeed) throws Exception {
-		return ((ControlRequestArrivalI)this.connector).updateClockSpeed(clockSpeed);
+	public boolean updateClockSpeed(Double clockSpeed,ArrayList<String> listCore) throws Exception {
+		return ((ControlRequestArrivalI)this.connector).updateClockSpeed(clockSpeed, listCore);
 	}
 
 	@Override

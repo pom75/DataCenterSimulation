@@ -26,6 +26,9 @@ public class CooridationCoreInCPU extends AbstractComponent {
 	//cf nom varibale
 	protected ControlCpuOutBoundPort incpp;
 	
+	//Priorité max dans l'app
+	protected int maxP = -1;
+	
 	protected HashMap<String, String>  idPrio = new HashMap<String, String>();
 	protected HashMap<String, ArrayList<String>>  idCore = new HashMap<String, ArrayList<String>>();
 	
@@ -69,7 +72,11 @@ public class CooridationCoreInCPU extends AbstractComponent {
 	
 	public boolean majClockSpeed(String prio, Double fcs, ArrayList<String> listCore) throws Exception {
 		String idAp = prio.split("-")[0];
-		String p = prio.split("-")[1];
+		String p =  idAp; //prio.split("-")[1];  HACK par defaut  prio de l'app = a son id 
+
+		if(maxP < Integer.parseInt(p)){
+			maxP = Integer.parseInt(p);
+		}
 		
 		idPrio.put(idAp, p);
 		idCore.put(idAp, listCore);
@@ -84,16 +91,52 @@ public class CooridationCoreInCPU extends AbstractComponent {
 					response = true;
 					System.out.println(logId + " Tentative de changement de fréquence réussite ");
 					coreFre.set(Integer.parseInt(listCore.get(i).split("-")[4]), coreFre.get(Integer.parseInt(listCore.get(i).split("-")[4])) + fcs );
-					break;
+					return true;
 				}
 			}else{
-				System.out.println(logId + " Contrainte de Diff! Impossible de chnager le coeur "+Integer.parseInt(listCore.get(i).split("-")[4]));
-				System.out.println(logId + " Tentative de changement par la priorité");
-
+				if(incpp.majClockSpeed(prio, fcs, listCore) && fcs + coreFre.get(Integer.parseInt(listCore.get(i).split("-")[4])) < 3.0){
+					response = true;
+				}
+				System.out.println(logId + " _________________________Contrainte de Diff! Impossible de chnager le coeur "+Integer.parseInt(listCore.get(i).split("-")[4]));
 			}
 			
 		}
-		return incpp.majClockSpeed(prio, fcs, listCore);
+		// si on a response = true c'est qu'on peut peut-etre forcé la maj
+		if(response){
+			System.out.println(logId + " ________________________________________Tentative de changement par la priorité");
+			//Si je suis la priorité maximum ou égale a une autre je fais se que je veux ! 
+			if(maxP <= Integer.parseInt(p)){
+				System.out.println(logId + " Priorité MAX Tentative de changement des autres coeurs");
+				//On change tous les autres coeurs 
+				if( incpp.updateClockSpeed(fcs, listCore) ){
+					System.out.println(logId + "  Autres coeur changé");
+					//On refait la boucle d'avant poru re upe les coeur
+					for(int i = 0; i<listCore.size(); i++){
+						buffList = new ArrayList<String>();
+						buffList.add(listCore.get(i));
+						if(canUp(Integer.parseInt(listCore.get(i).split("-")[4]), fcs)){
+							if(incpp.majClockSpeed(prio, fcs, listCore)){
+								response = true;
+								System.out.println(logId + " *********************************** Tentative de changement de fréquence réussite ");
+								coreFre.set(Integer.parseInt(listCore.get(i).split("-")[4]), coreFre.get(Integer.parseInt(listCore.get(i).split("-")[4])) + fcs );
+								return true;
+							}
+						}else{
+							if(incpp.majClockSpeed(prio, fcs, listCore) && fcs + coreFre.get(Integer.parseInt(listCore.get(i).split("-")[4])) > 3.0){
+								response = true;
+							}
+							System.out.println(logId + " ********************* Contrainte de Diff! Impossible de chnager le coeur "+Integer.parseInt(listCore.get(i).split("-")[4]));
+						}
+						
+					}
+				}
+			}
+		}
+		
+		
+		
+		
+		return false;
 		
 	}
 	
@@ -112,7 +155,7 @@ public class CooridationCoreInCPU extends AbstractComponent {
 			return resp;
 		}
 
-	public boolean updateClockSpeed(Double fcs) {
+	public boolean updateClockSpeed(Double fcs, ArrayList<String> listCore) {
 		// TODO Auto-generated method stub
 		return false;
 	}

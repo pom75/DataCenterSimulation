@@ -54,7 +54,7 @@ implements	ControlRequestArrivalI
 	
 
 	@Override
-	public boolean updateClockSpeed(Double cs) 
+	public boolean updateClockSpeed(Double cs,ArrayList<String> listCore) 
 			throws Exception 
 	{
 		final Core sp = (Core) this.owner ;
