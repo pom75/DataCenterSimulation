@@ -215,6 +215,8 @@ public class Cpu extends AbstractComponent {
 	 * @throws Exception
 	 */
 	public boolean updateClockSpeed(Double clockSpeed) throws Exception {
+		System.out.println(logId + " Demande de changement de tous les coeurs à +/- "+clockSpeed);
+		
 		if(clockSpeed > maxClockSpeed || clockSpeed <= 0){
 			return false;
 		}
@@ -237,7 +239,7 @@ public class Cpu extends AbstractComponent {
 	}
 
 	public boolean majClockSpeed(Double fcs, ArrayList<String> cpuU) {
-		// TODO Auto-generated method stub
+		System.out.println(logId + "____ Demande de changement de tous les coeurs à +/- "+fcs);
 		return false;
 	}
 	

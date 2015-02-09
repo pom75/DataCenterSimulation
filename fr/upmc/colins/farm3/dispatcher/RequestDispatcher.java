@@ -12,7 +12,6 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import fr.upmc.colins.farm3.connectors.InfoControlAppServiceConnector;
 import fr.upmc.colins.farm3.connectors.RequestServiceConnector;
 import fr.upmc.colins.farm3.conrolapp.AppControlerInfoInboundPort;
-import fr.upmc.colins.farm3.conrolapp.ApplicationControl;
 import fr.upmc.colins.farm3.core.RequestArrivalI;
 import fr.upmc.colins.farm3.core.ResponseArrivalI;
 import fr.upmc.colins.farm3.generator.RequestGeneratorOutboundPort;
@@ -73,9 +72,7 @@ extends		AbstractComponent
 	/** prefix uri of the information outbound port of the appication contorleur	*/
 	protected static final String AC_OIP_PREFIX = "ac-oip-";
 	
-	ApplicationControl ap;
-	
-	/** outbound ports to the core											*/
+	/** outbound ports to the AppC										*/
 	protected InfoOutboundPort iop;
 	
 	

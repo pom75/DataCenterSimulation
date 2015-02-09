@@ -17,7 +17,7 @@ implements ControlRequestArrivalI {
 		super(uri, ControlRequestArrivalI.class, owner);
 		
 		assert	uri != null ;
-		assert	owner.isRequiredInterface(AppControlerInfoInboundPort.class) ;
+		assert	owner.isRequiredInterface(ControlRequestArrivalI.class) ;
 	}
 
 	@Override
@@ -31,6 +31,8 @@ implements ControlRequestArrivalI {
 		return ((ControlRequestArrivalI)this.connector).getCoresRequestArrivalInboundPortUris();
 	}
 
+	
+	
 	@Override
 	public boolean majClockSpeed(Double clockSpeed, ArrayList<String> cpuUri)
 			throws Exception {

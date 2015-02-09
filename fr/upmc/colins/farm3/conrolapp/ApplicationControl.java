@@ -4,6 +4,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import fr.upmc.colins.farm3.connectors.ControlRequestServiceConnector;
 import fr.upmc.colins.farm3.core.ControlRequestArrivalI;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.cvm.AbstractCVM;
@@ -18,8 +19,11 @@ public class ApplicationControl extends AbstractComponent {
 	/** prefix uri of the information inbound port of the appication contorleur	*/
 	protected static final String AC_IIP_PREFIX = "ac-iip-";
 	
+	/** prefix uri of the proc inbount port of the appication contorleur to cpu	*/
+	protected static final String AC_CIP_PREFIX = "cpu-craip-";
+	
 	/** prefix uri of the controleur outbound port of the appication contorleur to cpu	*/
-	protected static final String AC_COP_PREFIX = "ac-cop-";
+	protected static final String AC_COP_PREFIX = "appc-cop-";
 	
 	/** Liste des URI CPU / coeur uniquement dans le cpu et bond a l'app */
 	protected HashMap<String,ArrayList<String>> cpuCoreInboundPortUris = new HashMap<String, ArrayList<String>>();
@@ -30,6 +34,9 @@ public class ApplicationControl extends AbstractComponent {
 	/** Time expected by the app 															*/
 	protected Double timeExp ;
 	
+	/** outbound ports to the cpu											*/
+	protected ArrayList<ControlCpuOutBoundPort> cop = new ArrayList<ControlCpuOutBoundPort>();
+	
 	
 	public ApplicationControl(Integer id, 
 			Double time,
@@ -39,7 +46,7 @@ public class ApplicationControl extends AbstractComponent {
 
 		assert id != null;
 		
-		this.logId = MessageFormat.format("[   AppC {0}  ]", String.format("%04d", id));
+		this.logId = MessageFormat.format("[  AppC {0} ]", String.format("%04d", id));
 		this.id = id ;
 		this.timeExp = time;
 		this.meanTime = time;
@@ -48,17 +55,28 @@ public class ApplicationControl extends AbstractComponent {
 		
 		this.addRequiredInterface(ControlRequestArrivalI.class);
 		
-		/*On connecte tous les cpu a AppControl
+		//On connecte tous les cpu a AppControl
 		int cpt = 0;
 		int i =0;
-		while(cpt != cpuCoreInboundPortUris.size()){
-			if(cpuCoreInboundPortUris.containsKey(cpt)){
+		while(cpt < cpuCoreInboundPortUris.size()){
+			if(cpuCoreInboundPortUris.containsKey(AC_CIP_PREFIX + i)){
+				ControlCpuOutBoundPort buff = new ControlCpuOutBoundPort(AC_COP_PREFIX + id +"-"+ cpt, this);
+				cop.add(buff);
+				this.addPort(buff);
+				if (AbstractCVM.isDistributed) {
+					buff.publishPort() ;
+				} else {
+					buff.localPublishPort() ;
+				}
+				buff.doConnection(AC_CIP_PREFIX + i, ControlRequestServiceConnector.class.getCanonicalName());
+				buff.majClockSpeed(0.5, cpuCoreInboundPortUris.get(AC_CIP_PREFIX + i));
 				cpt++;
-				
 			}
 			i++;
 		}
-		*/
+		
+		
+		
 		
 		// inbound port for info arrival
 		this.addOfferedInterface(AppControlerInfoInboundPort.class) ;
@@ -69,6 +87,8 @@ public class ApplicationControl extends AbstractComponent {
 		} else {
 			this.iip.localPublishPort() ;
 		}
+		
+		System.out.println(logId + " Crée ");
 	}
 
 
