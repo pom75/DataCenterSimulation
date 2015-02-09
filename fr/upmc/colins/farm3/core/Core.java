@@ -1,5 +1,6 @@
 package fr.upmc.colins.farm3.core;
 
+import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
@@ -63,7 +64,7 @@ extends		AbstractComponent
 {
 
 	protected String logId;
-    
+
 	// -------------------------------------------------------------------------
 	// Constructors and instance variables
 	// -------------------------------------------------------------------------
@@ -89,7 +90,7 @@ extends		AbstractComponent
 	protected double 					clockSpeed;
 	/** maximum clock speed of the core 									*/
 	protected double 					maxClockSpeed;
-	
+
 	// the two fields below are necessary to keep track of metadata on the 
 	// currently served task. it let us reschedule the task with the new
 	// clock speed
@@ -97,7 +98,7 @@ extends		AbstractComponent
 	protected long 						timeStart;
 	/** number of instructions of the request remaining to process			*/
 	protected long 						remainingInstructions;
-	
+
 	/** outbound port of the core to send response to the virtual machine	*/
 	protected CoreResponseGeneratorOutboundPort coreResponseGeneratorOutboundPort;
 
@@ -119,16 +120,16 @@ extends		AbstractComponent
 	 * @throws Exception
 	 */
 	public				Core(
-		Integer coreId,
-		Double clockSpeed,
-		Double maxClockSpeed,
-		String inboundPortURI,
-		String controlInboundPortURI
-		) throws Exception
+			Integer coreId,
+			Double clockSpeed,
+			Double maxClockSpeed,
+			String inboundPortURI,
+			String controlInboundPortURI
+			) throws Exception
 	{
 		super(true, true) ;
 		this.logId = MessageFormat.format("[ Core {0}  ]", String.format("%04d", coreId));
-		
+
 		this.coreId = coreId;
 		this.clockSpeed = clockSpeed;
 		this.maxClockSpeed = maxClockSpeed;
@@ -140,7 +141,7 @@ extends		AbstractComponent
 		this.nextEndServicingTaskFuture = null ;
 		this.timeStart = 0;
 		this.remainingInstructions = 0;
-		
+
 		// inbound port for request arrival
 		this.addOfferedInterface(RequestArrivalI.class) ;
 		PortI p = new CoreRequestArrivalInboundPort(inboundPortURI, this) ;
@@ -165,7 +166,7 @@ extends		AbstractComponent
 			controlPort.localPublishPort();
 			coreResponseGeneratorOutboundPort.localPublishPort();
 		}
-		
+
 		System.out.println(logId + " Core " + this.clockSpeed + " / "
 				+ this.maxClockSpeed + " GHz (id " + coreId + ") created");
 
@@ -197,8 +198,8 @@ extends		AbstractComponent
 	public void			shutdown() throws ComponentShutdownException
 	{
 		if (this.nextEndServicingTaskFuture != null &&
-							!(this.nextEndServicingTaskFuture.isCancelled() ||
-							  this.nextEndServicingTaskFuture.isDone())) {
+				!(this.nextEndServicingTaskFuture.isCancelled() ||
+						this.nextEndServicingTaskFuture.isDone())) {
 			this.nextEndServicingTaskFuture.cancel(true) ;
 		}
 		try {
@@ -236,7 +237,7 @@ extends		AbstractComponent
 
 		long t = System.currentTimeMillis() ;
 		System.out.println(logId + " Accepting request       " + r + " at " +
-												TimeProcessing.toString(t)) ;
+				TimeProcessing.toString(t)) ;
 		r.setArrivalTime(t) ;
 		this.requestsQueue.add(r) ;
 		if (!this.coreIdle) {
@@ -246,12 +247,9 @@ extends		AbstractComponent
 		}
 	}
 
-	
-	public boolean		updateClockSpeed(Double clockS) throws Exception
-	{
-		
-		System.out.println("__________________________"+clockS);
-		
+
+	public boolean		updateClockSpeed(Double clockS) throws Exception{
+
 		if( clockS + this.clockSpeed > maxClockSpeed || clockS + this.clockSpeed < 1.0 ){
 			System.out.println(logId +" Impossible de changer la Frequence de ce coeur il a atteinds ces bornes ");
 			return false;
@@ -260,13 +258,16 @@ extends		AbstractComponent
 		// keep track of the old clock rate
 		double oldClockSpeed = this.clockSpeed;
 		double next = clockS +this.clockSpeed;
-		System.out.println(logId + " Updating clock speed : " + this.clockSpeed + " -> "
-				+ next );
+		BigDecimal currentCS = new BigDecimal(this.clockSpeed);
+		BigDecimal newCS = new BigDecimal(next);
+
+		System.out.println(logId + " Updating clock speed : " + currentCS.setScale(1, BigDecimal.ROUND_CEILING ) + " -> "
+				+ newCS.setScale(1, BigDecimal.ROUND_CEILING ));
 		// update the clock rate
 		this.clockSpeed = clockSpeed + clockS;
-		
+
 		System.out.println(logId + " Clock speed updated");
-		
+
 		if (this.requestsQueue.isEmpty() && this.coreIdle) {
 			// nothing to reschedule
 			System.out.println(logId + " No ongoing task, nothing to reschedule");
@@ -289,8 +290,8 @@ extends		AbstractComponent
 		assert this.clockSpeed > 0;
 		return true;
 	}
-	
-	
+
+
 	/**
 	 * process a begin servicing event, e.g. schedule a end servicing event
 	 * after a delay of the processing time of the request.
@@ -306,21 +307,21 @@ extends		AbstractComponent
 	public void			beginServicingEvent()
 	{
 		this.servicing = this.requestsQueue.remove() ;
-		
+
 		this.remainingInstructions = servicing.getNrofInstructions();
-		
+
 		System.out.println(logId + " Begin servicing request " + this.servicing + " at "
-						+ TimeProcessing.toString(System.currentTimeMillis())) ;
+				+ TimeProcessing.toString(System.currentTimeMillis())) ;
 		scheduleServicing();
 	}
-	
+
 	/**
 	 * schedule the request contained in the servicing field as a task.
 	 * called by beginServicingEvent and also bvy 
 	 */
 	private void		scheduleServicing(){
 		this.timeStart = System.currentTimeMillis();
-		
+
 		this.coreIdle = false ;
 		final Core fcore = (Core) this ;
 		final long fnrofInst = this.remainingInstructions;
@@ -336,8 +337,8 @@ extends		AbstractComponent
 					e.printStackTrace() ;
 				}
 			}};
-		this.nextEndServicingTaskFuture = this.scheduleTask(task ,
-				processingTime, TimeUnit.MILLISECONDS) ;
+			this.nextEndServicingTaskFuture = this.scheduleTask(task ,
+					processingTime, TimeUnit.MILLISECONDS) ;
 	}
 
 	/**
@@ -358,22 +359,22 @@ extends		AbstractComponent
 	{
 		long t = System.currentTimeMillis() ;
 		long st = t - this.servicing.getArrivalTime() ;
-		
+
 		Response response = new Response(this.servicing.getUri());
 		response.setDuration(new Double(st));
-		
+
 		if(this.coreResponseGeneratorOutboundPort.connected()){
 			this.coreResponseGeneratorOutboundPort.acceptResponse(response);
 		}
 		System.out.println(logId + " End servicing request   " + this.servicing +
-								" at " + TimeProcessing.toString(t) +
-								" with service time " + st) ;
+				" at " + TimeProcessing.toString(t) +
+				" with service time " + st) ;
 		this.totalServicingTime += st ;
 		this.totalNumberOfServicedRequests++ ;
-		
+
 		this.timeStart = 0;
 		this.remainingInstructions = 0;
-		
+
 		if (this.requestsQueue.isEmpty()) {
 			this.servicing = null ;
 			this.coreIdle = true ;
@@ -394,7 +395,7 @@ extends		AbstractComponent
 		// do connection
 		if (!this.coreResponseGeneratorOutboundPort.connected()) {
 			this.coreResponseGeneratorOutboundPort
-					.doConnection(furi, ResponseServiceConnector.class.getCanonicalName());
+			.doConnection(furi, ResponseServiceConnector.class.getCanonicalName());
 		}
 	}
 }

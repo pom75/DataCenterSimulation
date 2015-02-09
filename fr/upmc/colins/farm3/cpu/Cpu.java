@@ -33,19 +33,19 @@ import fr.upmc.components.exceptions.ComponentStartException;
  * @version $Name$ -- $Revision$ -- $Date$
  */
 public class Cpu extends AbstractComponent {
-	
+
 
 	protected String logId;
-	
+
 	protected static final String CPU_PREFIX = "cpu-";
 	protected static final String CPU_CRGOP_PREFIX = "-crgop-";
 	protected static final String CORE_RAIP_PREFIX = "-core-raip-";
 	protected static final String CORE_CRAIP_PREFIX = "-core-craip-";
-	
+
 	// -------------------------------------------------------------------------
 	// Constructors and instance variables
 	// -------------------------------------------------------------------------
-	
+
 	/** cpu identifier 															*/
 	protected int 			cpuId;
 	/**	number of cores 														*/
@@ -56,12 +56,12 @@ public class Cpu extends AbstractComponent {
 	protected Double 		maxClockSpeed;
 	/**	default maximum gap in clock speed for all cores						*/
 	protected Double 		maxGapClockSpeed = 0.5;
-	
+
 	/** list of outboundports of the cpu to each cores							*/
 	protected ArrayList<RequestGeneratorOutboundPort> cpuRequestGeneratorOutboundPorts;	
 	/** inbound port for cpu control request arrival 							*/
 	protected CpuControlRequestArrivalInboundPort cpuInboundPort;
-	
+
 	/** dynamic component creation outbound port to the provider's JVM			*/
 	protected DynamicComponentCreationOutboundPort portToProviderJVM;
 	/** list of inbound port uri core request arrival							*/
@@ -70,9 +70,11 @@ public class Cpu extends AbstractComponent {
 	protected ArrayList<String> coreControlRequestArrivalInboundPortUris;
 	/** list of outbound ports for control request generator					*/
 	protected ArrayList<ControlRequestGeneratorOutboundPort> controlRequestGeneratorOutboundPorts;
+	/** liste des puissance de coeur */
+	protected ArrayList<Double> coreFre = new ArrayList<Double>();
 
 
-	
+
 	/**
 	 * create a CPU with its cores
 	 * @param cpuId
@@ -101,14 +103,14 @@ public class Cpu extends AbstractComponent {
 
 		assert nrofCores > 0 && clockSpeed > 0.0;
 		assert controlInboundPortURI != null;
-		
+
 		this.cpuId = cpuId;
 		this.nrofCores = nrofCores;
 		this.clockSpeed = clockSpeed;
 		this.maxClockSpeed = maxClockSpeed;
 		this.coreRequestArrivalInboundPortUris = new ArrayList<>();
 		this.coreControlRequestArrivalInboundPortUris = new ArrayList<>();
-		
+
 		this.addRequiredInterface(ControlRequestArrivalI.class);
 		this.addOfferedInterface(ControlRequestArrivalI.class);
 		this.controlRequestGeneratorOutboundPorts = new ArrayList<>();
@@ -118,17 +120,20 @@ public class Cpu extends AbstractComponent {
 			String craipCoreUri = CPU_PREFIX + cpuId + CORE_CRAIP_PREFIX + i;
 			// build the core
 			Core core = new Core(
-				i,
-				clockSpeed,
-				maxClockSpeed,
-				raipCoreUri,
-				craipCoreUri	
-			);
+					i,
+					clockSpeed,
+					maxClockSpeed,
+					raipCoreUri,
+					craipCoreUri	
+					);
 			cvm.addDeployedComponent(core);
 			
+			//On rajoutele coeur aux registre du cpu
+			coreFre.add(clockSpeed);
+
 			coreRequestArrivalInboundPortUris.add(CPU_PREFIX + cpuId + CORE_RAIP_PREFIX + i);
 			coreControlRequestArrivalInboundPortUris.add(CPU_PREFIX + cpuId + CORE_CRAIP_PREFIX + i);
-			
+
 			ControlRequestGeneratorOutboundPort crgop = new ControlRequestGeneratorOutboundPort(crgopCpuUri, this);
 			this.controlRequestGeneratorOutboundPorts.add(crgop);			
 			if (AbstractCVM.isDistributed) {
@@ -138,9 +143,9 @@ public class Cpu extends AbstractComponent {
 			}
 			crgop.doConnection(craipCoreUri, 
 					ControlRequestServiceConnector.class.getCanonicalName());
-			
+
 		}
-		
+
 		this.cpuInboundPort = new CpuControlRequestArrivalInboundPort(controlInboundPortURI, this);
 		this.addPort(cpuInboundPort);
 		if (AbstractCVM.isDistributed) {
@@ -170,8 +175,8 @@ public class Cpu extends AbstractComponent {
 	{
 		super.start() ;
 	}
-	
-	
+
+
 	/**
 	 * shut down the component
 	 * 
@@ -202,7 +207,7 @@ public class Cpu extends AbstractComponent {
 		super.shutdown();
 	}
 
-	
+
 	// -------------------------------------------------------------------------
 	// Component internal services
 	// -------------------------------------------------------------------------
@@ -216,17 +221,17 @@ public class Cpu extends AbstractComponent {
 	 */
 	public boolean updateClockSpeed(Double clockS) throws Exception {
 		System.out.println(logId + " Demande de changement de tous les coeurs à +/- "+clockSpeed);
-		
+
 		/* Contrainte de 0.5
 		if(clockSpeed > maxClockSpeed || clockSpeed <= 0){
 			return false;
 		}
-		*/
+		 */
 		boolean updated = true;
 		for (int i = 0; i < controlRequestGeneratorOutboundPorts.size(); i++) {
 			updated = updated
 					&& controlRequestGeneratorOutboundPorts.get(i)
-							.updateClockSpeed(clockS);
+					.updateClockSpeed(clockS);
 		}
 		return updated;
 	}
@@ -242,23 +247,44 @@ public class Cpu extends AbstractComponent {
 
 	public boolean majClockSpeed(Double fcs, ArrayList<String> listCore) throws Exception {
 		System.out.println(logId + " Tentative de change d'un coeur a "+fcs);
-		
+
 		/*
 		if(clockSpeed > maxClockSpeed || clockSpeed <= 0){
 			return false;
 		}
-		*/
-		
+		 */
+
 		boolean updated = true;
 		for (int i = 0; i < controlRequestGeneratorOutboundPorts.size(); i++) {
 			if(controlRequestGeneratorOutboundPorts.get(i).getServerPortURI().split("-")[4].contentEquals(listCore.get(i).split("-")[4])){
-				if(controlRequestGeneratorOutboundPorts.get(i).updateClockSpeed(fcs)){
-					System.out.println(logId + " Tentative de changement de fréquence réussite ");
-					break;
+
+				if(canUp(i, fcs)){
+					if(controlRequestGeneratorOutboundPorts.get(i).updateClockSpeed(fcs)){
+						System.out.println(logId + " Tentative de changement de fréquence réussite ");
+						coreFre.set(i, coreFre.get(i) + fcs );
+						break;
+					}
+				}else{
+					System.out.println(logId + " Contrainte de Diff! Impossible de chnager le coeur "+i);
 				}
 			}
 		}
 		return updated;
 	}
 	
+	//Contrainte si diff   ->    >=1 || <=1
+	public boolean canUp(int i,Double fcs){
+		Double buff = coreFre.get(i) + fcs;
+		boolean resp = true;
+		
+		for(int j = 0; j < coreFre.size(); j++){
+			if(!(buff -  coreFre.get(j) <= 1 && buff -  coreFre.get(j) >= -1)){
+				resp = false;
+				break;
+			}
+		}
+		
+		return resp;
+	}
+
 }

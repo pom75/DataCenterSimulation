@@ -96,6 +96,7 @@ public class ApplicationControl extends AbstractComponent {
 
 	public void infoArrivalEvent(String info) {
 		double pourcent = 10.0;
+		double pHz = 0.2;
 		
 		this.meanTime = (this.meanTime + Double.parseDouble(info)) / 2.0;
 			
@@ -108,7 +109,7 @@ public class ApplicationControl extends AbstractComponent {
 			//On parcourt les cpu 1 à 1 jusqu'a pouvoir changer la freq d'un coeur ( contraint max + diff 0.5) 
 			for(int i = 0; i< cop.size(); i++ ){
 				try {
-					if(cop.get(i).majClockSpeed( 0.5, cpuCoreInboundPortUris.get(cop.get(i).getServerPortURI()))){
+					if(cop.get(i).majClockSpeed( pHz, cpuCoreInboundPortUris.get(cop.get(i).getServerPortURI()))){
 						break;
 					}
 				} catch (Exception e) {
@@ -124,7 +125,7 @@ public class ApplicationControl extends AbstractComponent {
 			this.meanTime = Double.parseDouble(info);
 			for(int i = 0; i< cop.size(); i++ ){
 				try {
-					if(cop.get(i).majClockSpeed(- 0.5, cpuCoreInboundPortUris.get(cop.get(i).getServerPortURI()))){
+					if(cop.get(i).majClockSpeed(- pHz, cpuCoreInboundPortUris.get(cop.get(i).getServerPortURI()))){
 						break;
 					}
 				} catch (Exception e) {
