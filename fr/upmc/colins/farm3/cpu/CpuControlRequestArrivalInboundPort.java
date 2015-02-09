@@ -79,12 +79,12 @@ implements	ControlRequestArrivalI
 
 
 	@Override
-	public boolean majClockSpeed(Double clockSpeed, ArrayList<String> cpuUri)
+	public boolean majClockSpeed(String prio, Double clockSpeed, ArrayList<String> cpuUri)
 			throws Exception {
 		final Cpu fc = (Cpu) this.owner ;
 		final Double fcs = clockSpeed ;
 		final ArrayList<String> cpuU = cpuUri ;
-		return fc.majClockSpeed(fcs,cpuU);
+		return fc.majClockSpeed(fcs,cpuU); //prio useless 
 	}
 
 }

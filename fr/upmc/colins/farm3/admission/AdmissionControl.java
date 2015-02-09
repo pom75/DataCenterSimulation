@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import fr.upmc.colins.farm3.conrolapp.ApplicationControl;
+import fr.upmc.colins.farm3.coordCpu.CooridationCoreInCPU;
 import fr.upmc.colins.farm3.core.ControlRequestArrivalI;
 import fr.upmc.colins.farm3.cpu.ControlRequestGeneratorOutboundPort;
 import fr.upmc.colins.farm3.dispatcher.dynamic.DynamicRequestDispatcher;
@@ -84,8 +85,10 @@ public class AdmissionControl extends AbstractComponent {
 	
 	/** Liste des URI app / VM */
 	protected HashMap<String,ArrayList<String>> appVMInboundPortUris = new HashMap<String, ArrayList<String>>();
+
+	private Long nbCore;
 	
-	
+	private boolean bool = true;
 
 
 
@@ -105,6 +108,7 @@ public class AdmissionControl extends AbstractComponent {
 	 */
 	public AdmissionControl(
 			Long nrofCores, 
+			Long nbCore,
 			Integer nrofCoresPerVM,
 			Integer nrofVMPerDispatcher,
 			String outboundPortUri,
@@ -115,7 +119,8 @@ public class AdmissionControl extends AbstractComponent {
 	{
 		super(true, true);
 
-		this.nrofCores = nrofCores;		
+		this.nrofCores = nrofCores;
+		this.nbCore =nbCore;
 		this.nrofCoresPerVM = nrofCoresPerVM;
 		this.nrofVMPerDispatcher = nrofVMPerDispatcher;
 		this.controlRequestGeneratorOutboundPorts = new ArrayList<ControlRequestGeneratorOutboundPort>();
@@ -159,7 +164,23 @@ public class AdmissionControl extends AbstractComponent {
 		System.out.println(logId + " Admission control created");
 	}
 	
+	
+	
+	
+	
 	String acceptApplication(Application a) throws Exception {
+		
+		
+		if(bool){
+			bool = false;
+			try {
+				this.creatCoord();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		
 		System.out.println(logId + " Begin creation of application "
 				+ a.getUri());
@@ -198,11 +219,11 @@ public class AdmissionControl extends AbstractComponent {
 			}
 			//On prends tous les couers des  toutes les VM
 			allCoeurapp.addAll(assignedCoreRequestArrivalInboundPortUris);
-			
-			
+
+
 			//On ajoute le liste VM / Coeur
 			appVMInboundPortUris.put(a.getUri()+"", assignedCoreRequestArrivalInboundPortUris);
-			
+
 			this.portToProviderJVM.createComponent(
 					DynamicVM.class.getCanonicalName(),
 					new Object[]{ 
@@ -210,21 +231,21 @@ public class AdmissionControl extends AbstractComponent {
 						VM_RAIP_PREFIX + virtualMachineId, 
 						vmRequestGeneratorOutboundPortUris,
 						assignedCoreRequestArrivalInboundPortUris
-						}
+					}
 					);
-			
+
 			vmRequestArrivalInboundPortUris.add(VM_RAIP_PREFIX + virtualMachineId);
 			// the connection between the cores and the vm are done in the constructor
 			// of the virtual machine
 
 		}
-		
+
 		//On ajoute les vm a une app
 		appVMInboundPortUris.put(a.getUri()+"", vmRequestArrivalInboundPortUris);
 
+		
 		//Liste des cpu/core aloué pour une app
 		HashMap<String,ArrayList<String>> cpuCoreDist = new HashMap<String, ArrayList<String>>();
-
 		for(int i = 0;i < allCoeurapp.size(); i++){
 			ArrayList<String> listCore = new ArrayList<String>();
 			String key = "cpu-craip-"+ allCoeurapp.get(i).split("-")[1]; 
@@ -234,11 +255,17 @@ public class AdmissionControl extends AbstractComponent {
 				listCore.add(allCoeurapp.get(i));
 				cpuCoreDist.put(key, listCore );
 				
+				
 			}else{
 				listCore.add(allCoeurapp.get(i));
 				cpuCoreDist.put(key, listCore);
+				
 			}
 		}
+		
+		
+		
+
 		
 		// build the request dispatcher
 		this.portToProviderJVM.createComponent(
@@ -246,7 +273,8 @@ public class AdmissionControl extends AbstractComponent {
 				new Object[]{ 
 					a.getUri(),
 					((Double)a.getExpectedTime()),
-					cpuCoreDist
+					cpuCoreDist,
+					a.getPrio() //priorité de l'app
 				}
 				);
 		
@@ -300,9 +328,33 @@ public class AdmissionControl extends AbstractComponent {
 		}
 
 		super.start() ;
+		
 	}
 	
 	
+	private void creatCoord() throws Exception {
+		ArrayList<Double> coreFre = new ArrayList<Double>();
+		for(int j = 0 ; j< nbCore ; j++){
+			coreFre.add(1.0);
+		}
+		
+		
+		for(int i = 0; i< nrofCores/nbCore;i++)
+			//FULL HACK
+			this.portToProviderJVM.createComponent(
+					CooridationCoreInCPU.class.getCanonicalName(),
+					new Object[]{ 
+						i, 
+						coreFre, //HACK
+						"cpu-craip-"+i //HACK
+					}
+					);
+	}
+
+
+
+
+
 	/**
 	 * @see fr.upmc.components.AbstractComponent#shutdown()
 	 */

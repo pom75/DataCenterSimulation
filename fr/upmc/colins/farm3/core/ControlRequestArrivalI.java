@@ -30,7 +30,7 @@ extends		TwoWayI
 	boolean				updateClockSpeed(Double clockSpeed) throws Exception ;
 	
 	
-	boolean				majClockSpeed(Double clockSpeed,ArrayList<String> cpuUri) throws Exception ;
+	boolean				majClockSpeed(String prio ,Double clockSpeed,ArrayList<String> cpuUri) throws Exception ;
 
 	/**
 	 * return inbound core uri (raip)

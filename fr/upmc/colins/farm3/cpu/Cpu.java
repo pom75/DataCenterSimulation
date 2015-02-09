@@ -113,6 +113,7 @@ public class Cpu extends AbstractComponent {
 
 		this.addRequiredInterface(ControlRequestArrivalI.class);
 		this.addOfferedInterface(ControlRequestArrivalI.class);
+		
 		this.controlRequestGeneratorOutboundPorts = new ArrayList<>();
 		for (int i = 0; i < this.nrofCores; i++) {
 			String crgopCpuUri = CPU_PREFIX + cpuId + CPU_CRGOP_PREFIX + i;
@@ -157,6 +158,10 @@ public class Cpu extends AbstractComponent {
 		System.out.println(logId + " Central Processing Unit "
 				+ this.clockSpeed + " / " + this.maxClockSpeed + " GHz (id "
 				+ cpuId + ") created");
+		
+
+		
+		
 
 		assert this.coreRequestArrivalInboundPortUris.size() == this.nrofCores;
 		assert this.coreControlRequestArrivalInboundPortUris.size() == this.nrofCores;

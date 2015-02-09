@@ -1,13 +1,15 @@
-package fr.upmc.colins.farm3.core;
+package fr.upmc.colins.farm3.coordCpu;
 
 import java.util.ArrayList;
 
+import fr.upmc.colins.farm3.core.ControlRequestArrivalI;
 import fr.upmc.components.ComponentI;
+import fr.upmc.components.ComponentI.ComponentService;
 import fr.upmc.components.ports.AbstractInboundPort;
 
 /**
- * The class <code>CoreControlRequestArrivalInboundPort</code> implements the inbound port
- * for a component receiving control request from other components.
+ * The class <code>CpuControlRequestArrivalInboundPort</code> implements the inbound port
+ * for a cpu receiving control request from other components.
  *
  * <p><strong>Description</strong></p>
  * 
@@ -20,7 +22,7 @@ import fr.upmc.components.ports.AbstractInboundPort;
  * @author	Colins-Alasca
  * @version	$Name$ -- $Revision$ -- $Date$
  */
-public class			CoreControlRequestArrivalInboundPort
+public class			CoordControlRequestArrivalInboundPort
 extends		AbstractInboundPort
 implements	ControlRequestArrivalI
 {
@@ -41,7 +43,7 @@ implements	ControlRequestArrivalI
 	 * @param owner			owner component of the port.
 	 * @throws Exception
 	 */
-	public				CoreControlRequestArrivalInboundPort(
+	public				CoordControlRequestArrivalInboundPort(
 		String uri,
 		ComponentI owner
 		) throws Exception
@@ -54,29 +56,35 @@ implements	ControlRequestArrivalI
 	
 
 	@Override
-	public boolean updateClockSpeed(Double cs) 
-			throws Exception 
-	{
-		final Core sp = (Core) this.owner ;
-		final Double fcs = cs ;
-		return sp.updateClockSpeed(fcs);
+	public boolean updateClockSpeed(Double clockSpeed) throws Exception {
+		final CooridationCoreInCPU fc = (CooridationCoreInCPU) this.owner ;
+		final Double fcs = clockSpeed ;
+		return fc.updateClockSpeed(fcs);
 	}
 
 
 	@Override
-	public ArrayList<String> getCoresRequestArrivalInboundPortUris()
-			throws Exception 
-	{
-		// the core doesn't contains a list of inbound port uri of itself
-		return new ArrayList<>();
+	public ArrayList<String> getCoresRequestArrivalInboundPortUris() throws Exception {
+		final CooridationCoreInCPU fc = (CooridationCoreInCPU) this.owner;
+		ArrayList<String> res = fc
+				.handleRequestSync(new ComponentService<ArrayList<String>>() {
+					@Override
+					public ArrayList<String> call() throws Exception {
+						return fc.getCoresRequestArrivalInboundPortUris();
+					}
+				});
+
+		return res;
 	}
 
 
 	@Override
 	public boolean majClockSpeed(String prio, Double clockSpeed, ArrayList<String> cpuUri)
 			throws Exception {
-		// TODO Auto-generated method stub
-		return false;
+		final CooridationCoreInCPU fc = (CooridationCoreInCPU) this.owner ;
+		final Double fcs = clockSpeed ;
+		final ArrayList<String> cpuU = cpuUri ;
+		return fc.majClockSpeed(prio, fcs,cpuU);
 	}
 
 }

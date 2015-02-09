@@ -19,8 +19,8 @@ public class ApplicationControl extends AbstractComponent {
 	/** prefix uri of the information inbound port of the appication contorleur	*/
 	protected static final String AC_IIP_PREFIX = "ac-iip-";
 	
-	/** prefix uri of the proc inbount port of the appication contorleur to cpu	*/
-	protected static final String AC_CIP_PREFIX = "cpu-craip-";
+	/** prefix uri of the proc inbount port of the appication contorleur to cooridaiton cpu	*/
+	protected static final String AC_CIP_PREFIX = "cc-";
 	
 	/** prefix uri of the controleur outbound port of the appication contorleur to cpu	*/
 	protected static final String AC_COP_PREFIX = "appc-cop-";
@@ -37,13 +37,16 @@ public class ApplicationControl extends AbstractComponent {
 	/** outbound ports to the cpu											*/
 	protected ArrayList<ControlCpuOutBoundPort> cop = new ArrayList<ControlCpuOutBoundPort>();
 	
+	protected Integer prio;
 	
 	private int marge = 0;
 	
 	
-	public ApplicationControl(Integer id, 
+	public ApplicationControl(
+			Integer id, 
 			Double time,
-			HashMap<String,ArrayList<String>> cpuCoreInboundPortUris
+			HashMap<String,ArrayList<String>> cpuCoreInboundPortUris,
+			Integer prio
 			) throws Exception{
 		super(true, true) ;
 
@@ -56,13 +59,15 @@ public class ApplicationControl extends AbstractComponent {
 		this.cpuCoreInboundPortUris = cpuCoreInboundPortUris;
 		
 		
-		this.addRequiredInterface(ControlRequestArrivalI.class);
+		
 		
 		//On connecte tous les cpu a AppControl
+		this.addRequiredInterface(ControlRequestArrivalI.class);
 		int cpt = 0;
 		int i =0;
 		while(cpt < cpuCoreInboundPortUris.size()){
-			if(cpuCoreInboundPortUris.containsKey(AC_CIP_PREFIX + i)){
+			//lien cpu <-> coordcpu
+			if(cpuCoreInboundPortUris.containsKey("cpu-craip-" + i)){
 				ControlCpuOutBoundPort buff = new ControlCpuOutBoundPort(AC_COP_PREFIX + id +"-"+ cpt, this);
 				cop.add(buff);
 				this.addPort(buff);
@@ -109,7 +114,7 @@ public class ApplicationControl extends AbstractComponent {
 			//On parcourt les cpu 1 à 1 jusqu'a pouvoir changer la freq d'un coeur ( contraint max + diff 0.5) 
 			for(int i = 0; i< cop.size(); i++ ){
 				try {
-					if(cop.get(i).majClockSpeed( pHz, cpuCoreInboundPortUris.get(cop.get(i).getServerPortURI()))){
+					if(cop.get(i).majClockSpeed(id+"-"+prio , pHz, cpuCoreInboundPortUris.get("cpu-craip-"+cop.get(i).getServerPortURI().split("-")[1]))){
 						break;
 					}
 				} catch (Exception e) {
@@ -125,7 +130,7 @@ public class ApplicationControl extends AbstractComponent {
 			this.meanTime = Double.parseDouble(info);
 			for(int i = 0; i< cop.size(); i++ ){
 				try {
-					if(cop.get(i).majClockSpeed(- pHz, cpuCoreInboundPortUris.get(cop.get(i).getServerPortURI()))){
+					if(cop.get(i).majClockSpeed(id+"-"+prio , - pHz, cpuCoreInboundPortUris.get("cpu-craip-"+cop.get(i).getServerPortURI().split("-")[1]))){
 						break;
 					}
 				} catch (Exception e) {

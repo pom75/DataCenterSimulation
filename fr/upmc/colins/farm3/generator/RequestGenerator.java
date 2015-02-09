@@ -225,7 +225,8 @@ public class RequestGenerator extends AbstractComponent {
 							appCount,
 							this.meanNrofInstructions,
 							this.standardDeviation,
-							this.expectedTime
+							this.expectedTime,
+							appCount
 							));
 			System.out
 					.println(logId + " Connect to the request dispatcher for the requested app (via " + rdUri+")");

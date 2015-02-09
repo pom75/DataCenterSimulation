@@ -45,6 +45,9 @@ implements 	Serializable
 	protected long		arrivalTime ;
 	
 	protected Double expectedTime;
+
+	//priorité de l'app  = son id pour la coordination
+	private Integer prio;
 	
 	/**
 	 * create a new application with given uri, a mean number of instructions
@@ -64,7 +67,8 @@ implements 	Serializable
 		int uri,
 		double meanNrofInstructions,
 		double standardDeviation,
-		Double expectedTime
+		Double expectedTime,
+		Integer prio
 		)
 	{
 		super() ;
@@ -76,6 +80,7 @@ implements 	Serializable
 		this.standardDeviation = standardDeviation ;
 		this.arrivalTime = 0 ;
 		this.expectedTime = expectedTime;
+		this.prio = prio;
 
 		assert	this.meanNrofInstructions >= 0 && this.arrivalTime >= 0 ;
 	}
@@ -188,6 +193,19 @@ implements 	Serializable
 	public void setExpectedTime(Double expectedTime) {
 		this.expectedTime = expectedTime;
 	}
+
+
+
+	public Integer getPrio() {
+		return prio;
+	}
+
+
+
+	public void setPrio(Integer prio) {
+		this.prio = prio;
+	}
+	
 	
 	
 }

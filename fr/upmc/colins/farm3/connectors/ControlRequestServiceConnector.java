@@ -46,9 +46,9 @@ implements	ControlRequestArrivalI,	Serializable
 	}
 
 	@Override
-	public boolean majClockSpeed(Double clockSpeed, ArrayList<String> cpuUri)
+	public boolean majClockSpeed(String prio, Double clockSpeed, ArrayList<String> cpuUri)
 			throws Exception {
-		return ((ControlRequestArrivalI)this.offering).majClockSpeed(clockSpeed , cpuUri);
+		return ((ControlRequestArrivalI)this.offering).majClockSpeed(prio, clockSpeed , cpuUri);
 
 	}
 

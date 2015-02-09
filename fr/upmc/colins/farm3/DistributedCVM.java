@@ -138,6 +138,7 @@ public class DistributedCVM extends AbstractDistributedCVM {
 			// create the provider component (aka ServiceProvider)
 			this.mAdmissionControl = new AdmissionControl(
 					NROF_CPU * NROF_CORES_PER_CPU, 
+					NROF_CPU,
 					2,
 					2,
 					AC_CRGOP_PREFIX, 
